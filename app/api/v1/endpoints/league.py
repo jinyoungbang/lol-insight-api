@@ -1,5 +1,6 @@
 from fastapi import APIRouter
-from app.api.v1.middlewares.league_client import get_user_puuid
+from app.api.v1.middlewares.league_client import get_user_puuid, get_match_history_id, get_insights_from_match, get_user_insights_from_match
+from app.api.v1.middlewares.league_stats import return_match_insight
 
 router = APIRouter()
 
@@ -10,8 +11,12 @@ async def test_router():
     return {"test": "test"}
 
 
-@router.get("/find-insights/{game_name}")
-async def find_insights(game_name):
-    user_puuid = get_user_puuid(game_name, "NA1")
-    match_history_id
-    return user_puuid
+@router.get("/find-insights/{region}/{game_name}")
+async def find_insights(region: str, game_name: str):
+    user_puuid = get_user_puuid(game_name, region)
+    match_history_id = get_match_history_id(user_puuid)
+    for match_id in match_history_id:
+        match_insight = get_user_insights_from_match(match_id, user_puuid)
+        match_insight = return_match_insight(match_insight)
+        return match_insight
+    return match_history_id
