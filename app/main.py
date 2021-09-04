@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from .api.v1.routers import router
+from api.v1.routers import router
 from mangum import Mangum
 
 
