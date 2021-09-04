@@ -46,18 +46,18 @@ jobs:
       - name: Create Zipfile archive of Dependencies
         run: |
           cd ./venv/lib/python3.7/site-packages
-          zip -r9 ../../../../api.zip .
+          zip -r9 ../../../../app.zip .
       
       # Step 8
       - name: Add App to Zip file
-        run: cd ./app && zip -g ../api.zip -r .
+        run: cd ./app && zip -g ../app.zip -r .
       
       # Step 9
       - name: Upload zip file artifact
         uses: actions/upload-artifact@v2
         with:
-          name: api
-          path: api.zip
+          name: app
+          path: app.zip
 
   continuous-deployment:
     runs-on: ubuntu-latest
@@ -74,13 +74,13 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
       # Step 2
-      - name: Download Lambda api.zip
+      - name: Download Lambda app.zip
         uses: actions/download-artifact@v2
         with:
           name: api
   # Step 3
       - name: Upload to S3
-        run: aws s3 cp api.zip s3://lol-insight-api-bucket/api.zip
+        run: aws s3 cp app.zip s3://lol-insight-api-bucket/app.zip
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
