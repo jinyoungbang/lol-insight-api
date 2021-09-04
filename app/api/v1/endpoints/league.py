@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from app.api.v1.middlewares.league_client import get_user_puuid, get_match_history_id, get_insights_from_match, get_user_insights_from_match
+from app.api.v1.middlewares.league_client import UserInfo
 from app.api.v1.middlewares.league_stats import return_match_insight
 
 router = APIRouter()
@@ -13,10 +13,24 @@ async def test_router():
 
 @router.get("/find-insights/{region}/{game_name}")
 async def find_insights(region: str, game_name: str):
-    user_puuid = get_user_puuid(game_name, region)
-    match_history_id = get_match_history_id(user_puuid)
-    for match_id in match_history_id:
-        match_insight = get_user_insights_from_match(match_id, user_puuid)
-        match_insight = return_match_insight(match_insight)
-        return match_insight
-    return match_history_id
+    try:
+        user_info = UserInfo(region, game_name)
+        user_info.set_region_router()
+        user_info.set_puuid()
+        if not user_info.is_valid_user:
+            return {
+                "status": False,
+                "message": f"User with the name, {user_info.game_name} does not exist."
+            }
+        user_info.get_match_history_id()
+        if len(user_info.match_history_ids) == 0:
+            return {
+                "status": False,
+                "message": "No matches found."
+            }
+        user_info.generate_match_insights()
+        return user_info.match_insights
+
+    except Exception as e:
+        print(e)
+        return e

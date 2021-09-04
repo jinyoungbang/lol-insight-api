@@ -1,4 +1,6 @@
 def is_valid_region(region):
+    """ Checks if region is valid
+    """
     valid_regions = [
         "BR1",
         "EUN1",
@@ -16,3 +18,4 @@ def is_valid_region(region):
         return True
     else:
         return False
+

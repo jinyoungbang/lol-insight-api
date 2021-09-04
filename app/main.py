@@ -3,7 +3,7 @@ from .api.v1.routers import router
 from mangum import Mangum
 
 
-app = FastAPI(title='Serverless Lambda FastAPI')
+app = FastAPI(title='lol-insight-api')
 app.include_router(router, prefix="/v1")
 
 

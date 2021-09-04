@@ -1,123 +1,92 @@
 import requests
 import json
 from .validator import is_valid_region
+from .league_stats import return_match_insight
 
 # https://developer.riotgames.com/
-API_KEY = "RGAPI-f18f8105-1c10-4aa8-943e-a1b2148d2205"
+API_KEY = "RGAPI-3207f54c-86ec-473e-8d07-e8aae0dcf7cf"
 
 
-def get_user_puuid(game_name, region):
-    """Gets user's puuid
+def _find_region_routing(region):
+    """Finds appropriate router based off of region
     Parameters
     ----------
-    game_name: str, required
-        User's in game name
     region: str, required
         User's region
 
     Returns
     ----------
     str:
-        user's puuid
+        appropriate routing value
     """
-
-    if not is_valid_region(region):
-        return "Invalid region name."
-
-    url = "https://americas.api.riotgames.com/riot/account/v1/accounts/by-riot-id/" + \
-        game_name + "/" + region + "?api_key=" + API_KEY
-    payload, headers = {}, {}
-
-    response = requests.request("GET", url, headers=headers, data=payload)
-    response = response.json()
-
-    return response["puuid"]
+    if region in ["NA1", "BR1", "LA1", "LA2", "OC1"]:
+        return "americas"
+    elif region in ["JP1", "KR"]:
+        return "asia"
+    else:
+        return "europe"
 
 
-def get_match_history_id(puuid, start=0, count=20):
-    """Gets match history id of a user
-    Parameters
-    ----------
-    puuid: str, required
-        User's puuid
-    start: int, optional
-        Most recent game
-    count: int, optional
-        The number of matches from start
-    Returns
-    ----------
-    List[str]:
-        List of match ids of users with given parameter
-    """
-    url = "https://americas.api.riotgames.com/lol/match/v5/matches/by-puuid/" + \
-        puuid + "/ids?start=" + \
-        str(start) + "&count=" + str(count) + "&api_key=" + API_KEY
-    payload, headers = {}, {}
+class UserInfo:
+    def __init__(self, region, game_name):
+        self.region = region
+        self.region_router = ""
+        self.game_name = game_name
+        self.is_valid_user = False
+        self.puuid = ""
+        self.match_history_ids = []
+        self.match_insights = []
 
-    response = requests.request("GET", url, headers=headers, data=payload)
-    response = response.json()
+    def set_region_router(self):
+        """Sets the region router for API requests of user"""
+        if not is_valid_region(self.region):
+            return Exception("test")
+        self.region_router = _find_region_routing(self.region)
 
-    return response
+    def set_puuid(self):
+        """Sets user's puuid based on region and game_name"""
+        url = f"https://{self.region_router}.api.riotgames.com/riot/account/v1/accounts/by-riot-id/{self.game_name}/{self.region}?api_key={API_KEY}"
+        payload, headers = {}, {}
+        response = requests.request("GET", url, headers=headers, data=payload)
+        response = response.json()
+        if "status" not in response:
+            self.is_valid_user = True
+            self.puuid = response["puuid"]
 
+    def get_match_history_id(self, start=0, count=20):
+        url = f"https://{self.region_router}.api.riotgames.com/lol/match/v5/matches/by-puuid/{self.puuid}/ids?start={start}&count={count}&api_key={API_KEY}"
+        payload, headers = {}, {}
+        response = requests.request("GET", url, headers=headers, data=payload)
+        response = response.json()
+        self.match_history_ids = response
 
-def get_user_insights_from_match(match_id, puuid):
-    """Gets user_specific from match id
-    Parameters
-    ----------
-    match_id: str, required
-        Match id
-    puuid: str, required
-        User's puuid
+    def get_user_insight_from_match(self, match_id):
+        match_id_splitted = match_id.split("_")
+        match_region = match_id_splitted[0]
+        match_id = match_id_splitted[1]
+        url = f"https://{self.region_router}.api.riotgames.com/lol/match/v5/matches/{match_region}_{match_id}?api_key={API_KEY}"
+        payload, headers = {}, {}
+        response = requests.request("GET", url, headers=headers, data=payload)
+        match_data = response.json()
+        participants = match_data["metadata"]["participants"]
 
-    Returns
-    ----------
-    Dict:
-        Information of match id
-    """
-    match_id_splitted = match_id.split("_")
-    match_region = match_id_splitted[0]
-    match_id = match_id_splitted[1]
+        if self.puuid not in participants:
+            return {
+                "status": False,
+            }
 
-    url = "https://americas.api.riotgames.com/lol/match/v5/matches/" + \
-        match_region + "_" + match_id + "?api_key=" + API_KEY
+        participant_index = participants.index(self.puuid)
+        user_info = match_data["info"]["participants"][participant_index]
+        return user_info
 
-    payload, headers = {}, {}
-    response = requests.request("GET", url, headers=headers, data=payload)
-    match_data = response.json()
-    participants = match_data["metadata"]["participants"]
-
-    if puuid not in participants:
-        return {
-            "status": False,
-        }
-
-    participant_index = participants.index(puuid)
-    user_info = match_data["info"]["participants"][participant_index]
-    return user_info
-
-
-def get_insights_from_match(match_id):
-    """Gets overall insight from match id
-    Parameters
-    ----------
-    match_id: str, required
-        Match id
-
-    Returns
-    ----------
-    Dict:
-        Information of match id
-    """
-    match_id_splitted = match_id.split("_")
-    match_region = match_id_splitted[0]
-    match_id = match_id_splitted[1]
-
-    url = "https://americas.api.riotgames.com/lol/match/v5/matches/" + \
-        match_region + "_" + match_id + "?api_key=" + API_KEY
-
-    payload, headers = {}, {}
-
-    response = requests.request("GET", url, headers=headers, data=payload)
-    response = response.json()
-
-    return response
+    def generate_match_insights(self):
+        match_insight_list = []
+        counter = 0  # api limit
+        for match_id in self.match_history_ids:
+            match_insight = self.get_user_insight_from_match(match_id)
+            match_insight = return_match_insight(match_insight)
+            match_insight_list.append(match_insight)
+            counter += 1
+            if counter >= 5:
+                break
+        self.match_insights = match_insight_list
