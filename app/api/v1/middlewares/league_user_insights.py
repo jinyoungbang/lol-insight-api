@@ -2,9 +2,10 @@ import requests
 import json
 from .validator import is_valid_region
 from .league_stats import return_match_insight
+from ...constants import API_KEY
 
 # https://developer.riotgames.com/
-API_KEY = "RGAPI-3207f54c-86ec-473e-8d07-e8aae0dcf7cf"
+API_KEY = API_KEY
 
 
 def _find_region_routing(region):
@@ -27,7 +28,7 @@ def _find_region_routing(region):
         return "europe"
 
 
-class UserInfo:
+class UserInsights:
     def __init__(self, region, game_name):
         self.region = region
         self.region_router = ""
