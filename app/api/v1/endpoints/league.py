@@ -1,7 +1,7 @@
 from fastapi import APIRouter
-from app.api.v1.middlewares.league_user_insights import UserInsights
-from app.api.v1.middlewares.league_stats import return_match_insight
-from app.api.v1.middlewares.league_user_info import get_user_info
+from ..middlewares.league_user_insights import UserInsights
+from ..middlewares.league_stats import return_match_insight
+from ..middlewares.league_user_info import get_user_info
 
 router = APIRouter()
 
