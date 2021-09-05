@@ -29,7 +29,7 @@ def _find_region_routing(region):
 
 
 class UserInsights:
-    def __init__(self, region, game_name):
+    def __init__(self, region: str, game_name: str):
         self.region = region
         self.region_router = ""
         self.game_name = game_name
@@ -59,9 +59,10 @@ class UserInsights:
         payload, headers = {}, {}
         response = requests.request("GET", url, headers=headers, data=payload)
         response = response.json()
+        print(response)
         self.match_history_ids = response
 
-    def get_user_insight_from_match(self, match_id):
+    def get_user_insight_from_match(self, match_id: str):
         match_id_splitted = match_id.split("_")
         match_region = match_id_splitted[0]
         match_id = match_id_splitted[1]

@@ -27,10 +27,12 @@ def return_dmg_per_min(match_info):
 def return_match_insight(match_info):
     """
     TODO:
+    - DONE: DPM
+    - DONE: cs per minute
     - DMG%
     - Kill Participation @ 15
     - Kill Participation
-    - Gold Difference
+    - Gold Difference @ 15
     """
     return {
         "dpm": return_dmg_per_min(match_info),

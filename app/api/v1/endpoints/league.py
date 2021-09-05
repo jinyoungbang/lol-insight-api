@@ -30,19 +30,27 @@ async def find_insights(region: str, game_name: str):
     """Finds recent match insights of user"""
     try:
         user_insights = UserInsights(region, game_name)
+
+        # Sets region router for API requests based off of user's selected region.
         user_insights.set_region_router()
         user_insights.set_puuid()
+        
+        # If user with given name does not exist, return error.
         if not user_insights.is_valid_user:
             return {
                 "status": False,
                 "message": f"User with the name, {user_insights.game_name} does not exist."
             }
+        
+        # Retrieves recent match history and if none, return error.
         user_insights.get_match_history_id()
         if len(user_insights.match_history_ids) == 0:
             return {
                 "status": False,
                 "message": "No matches found."
             }
+
+        # Generate match insights for user
         user_insights.generate_match_insights()
         return user_insights.match_insights
 
