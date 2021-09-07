@@ -185,3 +185,7 @@ dmypy.json
 
 # Cython debug symbols
 cython_debug/
+
+# Custom gitignore files
+
+app/api/constants
