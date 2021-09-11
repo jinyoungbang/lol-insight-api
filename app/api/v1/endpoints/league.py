@@ -1,4 +1,5 @@
 from fastapi import APIRouter
+import logging
 from ..middlewares.league_user_insights import UserInsights
 from ..middlewares.league_stats import return_match_insight
 from ..middlewares.league_user_info import get_user_info
@@ -32,9 +33,11 @@ async def find_insights(region: str, game_name: str):
         user_insights = UserInsights(region, game_name)
 
         # Sets region router for API requests based off of user's selected region.
-        user_insights.set_region_router()
-        user_insights.set_puuid()
-        
+        user_insights.set_region_and_continent_router()
+        try:
+            user_insights.set_puuid()
+        except:
+            logging.error("Unable to fetch puuid.")
         # If user with given name does not exist, return error.
         if not user_insights.is_valid_user:
             return {

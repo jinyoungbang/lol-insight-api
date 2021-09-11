@@ -1,6 +1,7 @@
 def is_valid_region(region):
     """ Checks if region is valid
     """
+    regionToCheck = region.upper()
     valid_regions = [
         "BR1",
         "EUN1",
@@ -14,7 +15,7 @@ def is_valid_region(region):
         "TR1",
         "RU"
     ]
-    if region in valid_regions:
+    if regionToCheck in valid_regions:
         return True
     else:
         return False
