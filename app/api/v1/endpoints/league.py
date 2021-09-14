@@ -52,7 +52,6 @@ async def find_insights(region: str, game_name: str):
                 "status": False,
                 "message": "No matches found."
             }
-
         # Generate match insights for user
         user_insights.generate_match_insights()
         return user_insights.match_insights

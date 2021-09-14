@@ -4,7 +4,7 @@ def return_kda(match_info):
     assists = match_info["assists"]
 
     if deaths == 0:
-        return -1
+        return kills + assists
 
     kda = (kills + assists)/deaths
     return round(kda, 2)

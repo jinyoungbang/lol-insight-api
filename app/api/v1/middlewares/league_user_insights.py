@@ -61,6 +61,7 @@ class UserInsights:
         self.match_history_ids = []
         self.match_insights = []
         self.summoner_level = 0
+        self.summoner_id = ""
 
     def set_region_and_continent_router(self):
         """Sets the region router for API requests of user"""
@@ -86,6 +87,7 @@ class UserInsights:
             self.puuid = response["puuid"]
             self.account_id = response["accountId"]
             self.summoner_level = response["summonerLevel"]
+            self.summoner_id = response["id"]
 
     def get_match_history_id(self, start=0, count=20):
         url = f"https://{self.continent_router}.api.riotgames.com/lol/match/v5/matches/by-puuid/{self.puuid}/ids?start={start}&count={count}&api_key={API_KEY}"
@@ -115,12 +117,8 @@ class UserInsights:
 
     def generate_match_insights(self):
         match_insight_list = []
-        counter = 0  # api limit
         for match_id in self.match_history_ids:
             match_insight = self.get_user_insight_from_match(match_id)
             match_insight = return_match_insight(match_insight)
             match_insight_list.append(match_insight)
-            counter += 1
-            if counter >= 5:
-                break
         self.match_insights = match_insight_list
