@@ -8,9 +8,9 @@ app = FastAPI(title='lol-insight-api')
 origins = [
     "http://localhost",
     "http://localhost:3000",
-    "https://daiv.netlify.app/",
-    "https://daiv.app/",
-    "https://www.daiv.app/",
+    "https://daiv.netlify.app",
+    "https://daiv.app",
+    "https://www.daiv.app",
     "https://daiv.netlify.app/*",
     "https://daiv.app/*",
     "https://www.daiv.app/*"
