@@ -87,14 +87,14 @@ jobs:
           AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
 
       - name: Upload to S3 Americas
-        run: aws s3 cp app.zip s3://lol-insight-api-bucket/app.zip
+        run: aws s3 cp app.zip s3://daiv-api-us-bucket/app.zip
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_DEFAULT_REGION: ${{ secrets.AWS_REGION_US }}
           
       - name: Upload to S3 Europe
-        run: aws s3 cp app.zip s3://lol-insight-api-bucket/app.zip
+        run: aws s3 cp app.zip s3://daiv-api-eu-bucket/app.zip
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -108,14 +108,14 @@ jobs:
           AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
 
       - name: Deploy new Lambda Americas
-        run: aws lambda update-function-code --function-name daiv-api-us-lambda --s3-bucket lol-insight-api-bucket --s3-key app.zip
+        run: aws lambda update-function-code --function-name daiv-api-us-lambda --s3-bucket daiv-api-us-bucket --s3-key app.zip
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_DEFAULT_REGION: ${{ secrets.AWS_REGION_US }}
 
       - name: Deploy new Lambda Europe
-        run: aws lambda update-function-code --function-name daiv-api-eu-lambda --s3-bucket lol-insight-api-bucket --s3-key app.zip
+        run: aws lambda update-function-code --function-name daiv-api-eu-lambda --s3-bucket daiv-api-eu-bucket --s3-key app.zip
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
