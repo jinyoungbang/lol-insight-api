@@ -48,10 +48,7 @@ async def find_insights(region: str, game_name: str):
         # Retrieves recent match history and if none, return error.
         user_insights.get_match_history_id()
         if len(user_insights.match_history_ids) == 0:
-            return {
-                "status": False,
-                "message": "No matches found."
-            }
+            return []
         # Generate match insights for user
         user_insights.generate_match_insights()
         return user_insights.match_insights
