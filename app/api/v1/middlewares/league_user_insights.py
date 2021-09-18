@@ -118,6 +118,7 @@ class UserInsights:
     def generate_match_insights(self):
         match_insight_list = []
         for match_id in self.match_history_ids:
+            print(match_id)
             match_insight = self.get_user_insight_from_match(match_id)
             match_insight = return_match_insight(match_insight)
             match_insight_list.append(match_insight)
