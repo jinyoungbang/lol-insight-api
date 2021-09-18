@@ -27,12 +27,13 @@ def return_dmg_per_min(match_info):
 def return_match_insight(match_info):
     """
     TODO:
-    - DONE: DPM
-    - DONE: cs per minute
+    - Gold Per Min (GPM)
     - DMG%
-    - Kill Participation @ 15
-    - Kill Participation
-    - Gold Difference @ 15
+    - Solo Kills
+    - Kill Participation (KP)
+    - CS Difference @ 15 (CSD@15)
+    - XP Difference @ 15 (XPD@15)
+    - Gold Difference @ 15 (GD@15)
     """
     return {
         "dpm": return_dmg_per_min(match_info),

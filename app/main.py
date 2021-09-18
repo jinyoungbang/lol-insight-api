@@ -1,8 +1,8 @@
 from fastapi import FastAPI
+from fastapi.logger import logger
 from fastapi.middleware.cors import CORSMiddleware
 from api.v1.routers import router
 from mangum import Mangum
-
 
 app = FastAPI(title='lol-insight-api')
 origins = [
