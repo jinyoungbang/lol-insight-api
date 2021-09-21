@@ -130,6 +130,4 @@ class UserInsights:
             match_insight_stats = return_insights(
                 match_insight, timeline_insight, self.participant_index)
             match_insight_list.append(match_insight_stats)
-            print(match_insight_stats)
-            return
         self.match_insights = match_insight_list
