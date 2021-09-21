@@ -121,10 +121,10 @@ class UserInsights:
 
         return (match_data["info"], timeline_data)
 
-    def generate_match_insights(self):
+    def generate_match_insights(self, count=20):
         """Generates match insights of users and appends them to the object's list."""
         match_insight_list = []
-        for match_id in self.match_history_ids:
+        for match_id in self.match_history_ids[:count]:
             match_insight, timeline_insight = self.get_user_insight_from_match(
                 match_id)
             match_insight_stats = return_insights(
