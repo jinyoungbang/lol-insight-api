@@ -1,9 +1,9 @@
 import requests
 import json
 from .validator import is_valid_region
-from .league_stats import return_match_insight
+from .league_stats import return_insights
 from ...constants import API_KEY
-import logging 
+import logging
 
 # https://developer.riotgames.com/
 API_KEY = API_KEY
@@ -21,12 +21,13 @@ def _find_continent_routing(region):
     str:
         appropriate routing value
     """
-    if region in ["NA1", "BR1", "LA1", "LA2", "OC1"]:
+    if region in ["NA1", "BR1", "LA1", "LA2"]:
         return "americas"
-    elif region in ["JP1", "KR"]:
+    elif region in ["JP1", "KR", "OC1"]:
         return "asia"
     else:
         return "europe"
+
 
 def _find_region_routing(region):
     region_to_check = region.lower()
@@ -48,7 +49,6 @@ def _find_region_routing(region):
     return region_to_check
 
 
-
 class UserInsights:
     def __init__(self, region: str, game_name: str):
         self.region = region
@@ -60,6 +60,7 @@ class UserInsights:
         self.puuid = ""
         self.match_history_ids = []
         self.match_insights = []
+        self.participant_index = 0
         self.summoner_level = 0
         self.summoner_id = ""
 
@@ -74,7 +75,7 @@ class UserInsights:
     def set_puuid(self):
         """Sets user's puuid based on region and game_name"""
         logging.info("Setting user's puuid.")
-        
+
         # Make API call to get user data
         url = f"https://{self.region_router}.api.riotgames.com/lol/summoner/v4/summoners/by-name/{self.game_name}?api_key={API_KEY}"
         payload, headers = {}, {}
@@ -97,12 +98,10 @@ class UserInsights:
         self.match_history_ids = response
 
     def get_user_insight_from_match(self, match_id: str):
-        match_id_splitted = match_id.split("_")
-        match_region = match_id_splitted[0]
-        match_id = match_id_splitted[1]
-        url = f"https://{self.continent_router}.api.riotgames.com/lol/match/v5/matches/{match_region}_{match_id}?api_key={API_KEY}"
+        url_match = f"https://{self.continent_router}.api.riotgames.com/lol/match/v5/matches/{match_id}?api_key={API_KEY}"
         payload, headers = {}, {}
-        response = requests.request("GET", url, headers=headers, data=payload)
+        response = requests.request(
+            "GET", url_match, headers=headers, data=payload)
         match_data = response.json()
         participants = match_data["metadata"]["participants"]
 
@@ -111,15 +110,26 @@ class UserInsights:
                 "status": False,
             }
 
-        participant_index = participants.index(self.puuid)
-        user_info = match_data["info"]["participants"][participant_index]
-        return user_info
+        url_timeline = f"https://{self.continent_router}.api.riotgames.com/lol/match/v5/matches/{match_id}/timeline?api_key={API_KEY}"
+        payload, headers = {}, {}
+        response = requests.request(
+            "GET", url_timeline, headers=headers, data=payload)
+        timeline_data = response.json()
+        self.participant_index = participants.index(self.puuid)
+
+        user_info = match_data["info"]["participants"][self.participant_index]
+
+        return (match_data["info"], timeline_data)
 
     def generate_match_insights(self):
+        """Generates match insights of users and appends them to the object's list."""
         match_insight_list = []
         for match_id in self.match_history_ids:
-            print(match_id)
-            match_insight = self.get_user_insight_from_match(match_id)
-            match_insight = return_match_insight(match_insight)
-            match_insight_list.append(match_insight)
+            match_insight, timeline_insight = self.get_user_insight_from_match(
+                match_id)
+            match_insight_stats = return_insights(
+                match_insight, timeline_insight, self.participant_index)
+            match_insight_list.append(match_insight_stats)
+            print(match_insight_stats)
+            return
         self.match_insights = match_insight_list
