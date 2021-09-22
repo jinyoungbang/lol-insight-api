@@ -24,19 +24,19 @@ jobs:
       - name: Install Python Virtualenv
         run: pip3 install virtualenv
       # Step 4
-      - name:  Setup Virtualenv
-        uses: actions/cache@v2
-        id: cache-venv
-        with:
-          path: venv
-          key: ${{ runner.os }}-venv-${{ hashFiles('**/requirements*.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-venv-
+      # - name:  Setup Virtualenv
+      #   uses: actions/cache@v2
+      #   id: cache-venv
+      #   with:
+      #     path: venv
+      #     key: ${{ runner.os }}-venv-${{ hashFiles('**/requirements*.txt') }}
+      #     restore-keys: |
+      #       ${{ runner.os }}-venv-
       # Step 5
       - name: Activate and Install Depencies into Virtualenv
         run: python -m venv venv && source venv/bin/activate &&
           pip3 install -r requirements.txt
-        if: steps.cache-venv.outputs.cache-hit != 'true'
+        # if: steps.cache-venv.outputs.cache-hit != 'true'
       # Step 6     
       - name: Activate venv and Run Test        
         # run: . venv/bin/activate && pytest
