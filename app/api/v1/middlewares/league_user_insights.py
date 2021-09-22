@@ -90,7 +90,7 @@ class UserInsights:
             self.summoner_level = response["summonerLevel"]
             self.summoner_id = response["id"]
 
-    def get_match_history_id(self, start=0, count=20):
+    def get_match_history_id(self, start: int = 0, count: int = 20):
         url = f"https://{self.continent_router}.api.riotgames.com/lol/match/v5/matches/by-puuid/{self.puuid}/ids?start={start}&count={count}&api_key={API_KEY}"
         payload, headers = {}, {}
         response = requests.request("GET", url, headers=headers, data=payload)
@@ -117,17 +117,32 @@ class UserInsights:
         timeline_data = response.json()
         self.participant_index = participants.index(self.puuid)
 
-        user_info = match_data["info"]["participants"][self.participant_index]
+        return (
+            match_data,
+            timeline_data
+        )
 
-        return (match_data["info"], timeline_data)
-
-    def generate_match_insights(self, count=20):
+    def generate_match_insights(self, count: int = 15):
         """Generates match insights of users and appends them to the object's list."""
         match_insight_list = []
         for match_id in self.match_history_ids[:count]:
             match_insight, timeline_insight = self.get_user_insight_from_match(
                 match_id)
             match_insight_stats = return_insights(
-                match_insight, timeline_insight, self.participant_index)
-            match_insight_list.append(match_insight_stats)
+                match_insight["info"],
+                timeline_insight,
+                self.participant_index
+            )
+            data = {
+                "insight": match_insight_stats,
+                "win": match_insight["info"]["participants"][self.participant_index]["win"],
+                "userRole": match_insight["info"]["participants"][self.participant_index]["teamPosition"],
+                "queueId": match_insight["info"]["queueId"],
+                "matchId": match_insight["metadata"]["matchId"],
+                "championName": match_insight["info"]["participants"][self.participant_index]["championName"],
+                "kills": match_insight["info"]["participants"][self.participant_index]["kills"],
+                "deaths": match_insight["info"]["participants"][self.participant_index]["deaths"],
+                "assists": match_insight["info"]["participants"][self.participant_index]["assists"],
+            }
+            match_insight_list.append(data)
         self.match_insights = match_insight_list

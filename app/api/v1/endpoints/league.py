@@ -63,7 +63,7 @@ async def find_insights(region: str, game_name: str):
         # If data in Database Cache, return it without calling Riot API.
         response = daiv_dynamodb.get_recent_matches(user_insights.puuid)
         if "Item" in response:
-            return [match["insight"] for match in response["Item"]["matchData"]]
+            return response["Item"]["matchData"][:20]
 
         # Retrieves recent match history and if none, return error.
         user_insights.get_match_history_id()
@@ -74,19 +74,22 @@ async def find_insights(region: str, game_name: str):
         user_insights.generate_match_insights()
 
         try:
-            match_insights_dec = [json.loads(json.dumps(
-                insight), parse_float=Decimal) for insight in user_insights.match_insights]
+            match_insights_dec = [{
+                "insight": json.loads(json.dumps(insight["insight"]), parse_float=Decimal),
+                "win": insight["win"],
+                "userRole": insight["userRole"],
+                "queueId": insight["queueId"],
+                "matchId": insight["matchId"],
+                "championName": insight["championName"],
+                "kills": insight["kills"],
+                "deaths": insight["deaths"],
+                "assists": insight["assists"],
+            } for insight in user_insights.match_insights]
+
             response = daiv_dynamodb.initialize_matches({
                 "puuid": user_insights.puuid,
                 "lastUpdatedMatchId": user_insights.match_history_ids[0],
-                "matchData": [
-                    {
-                        "matchId": data,
-                        "matchType": None,
-                        "userRole": None,
-                        "insight": match_insights_dec[idx]
-                    } for (idx, data) in enumerate(user_insights.match_history_ids)
-                ],
+                "matchData": match_insights_dec,
                 "lastUpdated": datetime.utcnow().isoformat()
             })
         except Exception as e:
