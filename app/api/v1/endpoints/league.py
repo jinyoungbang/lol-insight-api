@@ -64,6 +64,8 @@ async def find_insights(region: str, game_name: str):
         response = daiv_dynamodb.get_recent_matches(user_insights.puuid)
         if "Item" in response:
             return response["Item"]["matchData"][:20]
+        else:
+            print("Lambda cache unsuccessful.")
 
         # Retrieves recent match history and if none, return error.
         user_insights.get_match_history_id()
