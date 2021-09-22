@@ -10,3 +10,9 @@ pip install -r requirements.txt
 cd app
 uvicorn main:app --reload
 ```
+
+### Freeze requirements before deploying.
+
+```bash
+pip freeze -l > requirements.txt 
+```
