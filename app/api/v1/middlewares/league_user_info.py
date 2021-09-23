@@ -20,7 +20,7 @@ def get_user_info(region: str, game_name: str):
     url = f"https://{region_router}.api.riotgames.com/lol/summoner/v4/summoners/by-name/{game_name}?api_key={API_KEY}"
     response = requests.request("GET", url, headers={}, data={})
     response = response.json()
-
+    print(response)
     # Checks if provided IGN exists or not.
     if "status" in response:
         return {
@@ -34,14 +34,14 @@ def get_user_info(region: str, game_name: str):
     response_additional = requests.request(
         "GET", url_additional, headers={}, data={})
     response_additional = response_additional.json()
-
+    
     # If empty array, player is identified as unranked.
     if len(response_additional) == 0:
         return response
 
     # If both solo queue and flex, fetch only solo queue data.
     elif len(response_additional) > 1:
-        response_additional = [data for data in response_additional if "RANKED_SOLO_5x5" in data["queueType"]]
+        response_additional = [data for data in response_additional if "RANKED_SOLO_5x5" in data["queueType"]][0]
 
     # Else, just use given provided data.
     else:
