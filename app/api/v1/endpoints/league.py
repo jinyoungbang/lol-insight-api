@@ -50,7 +50,7 @@ async def find_insights(region: str, game_name: str):
         except:
             logging.error("Unable to fetch puuid.")
             return {
-                "msg": "Unable to fetch puuid."
+                "message": "Unable to fetch puuid."
             }
 
         # If user with given name does not exist, return error.
@@ -62,15 +62,22 @@ async def find_insights(region: str, game_name: str):
 
         # If data in Database Cache, return it without calling Riot API.
         response = daiv_dynamodb.get_recent_matches(user_insights.puuid)
+
         if "Item" in response:
-            return response["Item"]["matchData"][:20]
+            item = response["Item"]
+            return {
+                "puuid": user_insights.puuid,
+                "lastUpdated": item["lastUpdated"],
+                "lastUpdatedMatchId": item["lastUpdatedMatchId"],
+                "matchData": item["matchData"][:20]
+            }
         else:
             print("Lambda cache unsuccessful.")
 
         # Retrieves recent match history and if none, return error.
         user_insights.get_match_history_id()
         if len(user_insights.match_history_ids) == 0:
-            return []
+            return {}
 
         # Generate match insights for user
         user_insights.generate_match_insights()
@@ -97,14 +104,19 @@ async def find_insights(region: str, game_name: str):
         except Exception as e:
             print(e)
 
-        return user_insights.match_insights
+        return {
+            "puuid": user_insights.puuid,
+            "lastUpdatedMatchId": user_insights.match_history_ids[0],
+            "matchData": match_insights_dec,
+            "lastUpdated": datetime.utcnow().isoformat()
+        }
 
     except Exception as e:
         print(e)
         return e
 
 
-@router.get("/refresh-insights/{region}/{game_name}")
+@router.post("/refresh-insights/{region}/{game_name}")
 async def refresh_insights(region: str, game_name: str):
     try:
         user = UserInsights(region, game_name)
@@ -130,44 +142,69 @@ async def refresh_insights(region: str, game_name: str):
                 "message": f"User with the name, {user.game_name} does not exist."
             }
 
-        # Retrieves recent match history and if none, return error.
+        # Retrieves recent match history.
         user.get_match_history_id(start=0, count=50)
-        if len(user.match_history_ids) == 0:
-            return []
 
-        # Retrieves most recent match id from the database.
-        recent_match_id = daiv_dynamodb.get_recent_match_id(user.puuid)
+        # Retrieves most recent match data from cache DB.
+        response = daiv_dynamodb.get_recent_matches(user.puuid)
+        if "Item" in response:
+            item = response["Item"]
+            recent_match_id = item["lastUpdatedMatchId"]
+        else:
+            return {}
+
+        # If no match history is generated from Riot API, return most recent data.
+        if len(user.match_history_ids) == 0:
+            daiv_dynamodb.refresh_last_updated_time(user.puuid)
+            return {
+                "lastUpdated": item["lastUpdated"],
+                "lastUpdatedMatchId": item["lastUpdatedMatchId"],
+                "matchData": item["matchData"][:20]
+            }
 
         # If most recent match_id is in the match history, generate insights from news data to recent id.
         if recent_match_id in user.match_history_ids:
             num_data_to_generate = user.match_history_ids.index(
                 recent_match_id)
+        # If user hasn't refreshed in a while, just do normal insight generation.
+        else:
+            user.generate_match_insights()
+
+        # If there are new data, generates only the new ones, else returns most updated data.
+        if num_data_to_generate > 0:
             user.generate_match_insights(count=num_data_to_generate)
+        else:
+            daiv_dynamodb.refresh_last_updated_time(user.puuid)
+            return {
+                "puuid": user.puuid,
+                "lastUpdated": item["lastUpdated"],
+                "lastUpdatedMatchId": item["lastUpdatedMatchId"],
+                "matchData": item["matchData"][:20]
+            }
 
-        # Convert float values to decimals to input in DynamoDB.
-        match_insights_dec = [json.loads(json.dumps(
-            insight), parse_float=Decimal) for insight in user.match_insights]
+        # Converts insights to Decimal obj for DynamoDB.
+        match_insights_dec = [{
+            "insight": json.loads(json.dumps(insight["insight"]), parse_float=Decimal),
+            "win": insight["win"],
+            "userRole": insight["userRole"],
+            "queueId": insight["queueId"],
+            "matchId": insight["matchId"],
+            "championName": insight["championName"],
+            "kills": insight["kills"],
+            "deaths": insight["deaths"],
+            "assists": insight["assists"],
+        } for insight in user.match_insights]
 
-        # Appropriate format for match/insight data.
-        match_data = [
-            {
-                "matchId": data,
-                "matchType": None,
-                "userRole": None,
-                "insight": match_insights_dec[idx]
-            } for (idx, data) in enumerate(user.match_history_ids[:num_data_to_generate])
-        ]
-
-        response = daiv_dynamodb.refresh_and_update_matches(
-            user.puuid, match_data, user.match_history_ids[0])
-
-        if not response["status"]:
-            return response
+        # Calls the refresh middleware to update match insight list.
+        response = daiv_dynamodb.refresh_and_update_matches(user.puuid, match_insights_dec, user.match_history_ids[0])
 
         return {
-            "status": True,
-            "message": "Insights successfully updated."
+            "puuid": user.puuid,
+            "lastUpdatedMatchId": user.match_history_ids[0],
+            "matchData": match_insights_dec,
+            "lastUpdated": datetime.utcnow().isoformat()
         }
+
 
     except ClientError as err:
         if err.response["Error"]["Code"] == 'ConditionalCheckFailedException':

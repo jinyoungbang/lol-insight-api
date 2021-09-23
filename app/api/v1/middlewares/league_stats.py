@@ -74,6 +74,7 @@ def return_insights(match_info: dict, timeline_info: dict, participant_index: in
     """
 
     participant_match_info = match_info["participants"][participant_index]
+
     timeline_insights = parse_data_from_timeline(
         timeline_info, participant_index)
 

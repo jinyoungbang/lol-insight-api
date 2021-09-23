@@ -1,7 +1,11 @@
 def parse_data_from_timeline(data: dict, participant_index: int):
     """Parses out specific information from match timeline data."""
+    frames = data["info"]["frames"]
 
-    frame_at_15 = data["info"]["frames"][15]
+    if len(frames) <= 15:
+        frame_at_15 = data["info"]["frames"][-1]
+    else:
+        frame_at_15 = data["info"]["frames"][15]
     participant_frames_at_15 = frame_at_15["participantFrames"]
 
     # Add one from idx as timeline data's index starts from 1

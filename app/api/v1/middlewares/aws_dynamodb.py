@@ -38,6 +38,22 @@ class DaivDynamoDB:
         )
         return response
 
+    def refresh_last_updated_time(self, puuid: str):
+        self.table.update_item(
+            Key={
+                'puuid': puuid,
+            },
+            UpdateExpression="SET lastUpdated = :value",
+            ExpressionAttributeValues={
+                ':value': datetime.utcnow().isoformat()
+            },
+            ReturnValues='UPDATED_NEW'
+        )
+
+        return {
+            "status": True,
+        }
+
     def refresh_and_update_matches(self, puuid: str, insights: list, recent_match_id: str):
         try:
 

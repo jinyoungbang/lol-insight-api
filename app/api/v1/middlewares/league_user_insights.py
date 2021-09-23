@@ -104,7 +104,6 @@ class UserInsights:
             "GET", url_match, headers=headers, data=payload)
         match_data = response.json()
         participants = match_data["metadata"]["participants"]
-
         if self.puuid not in participants:
             return {
                 "status": False,
@@ -125,14 +124,17 @@ class UserInsights:
     def generate_match_insights(self, count: int = 15):
         """Generates match insights of users and appends them to the object's list."""
         match_insight_list = []
+
         for match_id in self.match_history_ids[:count]:
             match_insight, timeline_insight = self.get_user_insight_from_match(
                 match_id)
+
             match_insight_stats = return_insights(
                 match_insight["info"],
                 timeline_insight,
                 self.participant_index
             )
+            
             data = {
                 "insight": match_insight_stats,
                 "win": match_insight["info"]["participants"][self.participant_index]["win"],
