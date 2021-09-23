@@ -36,15 +36,16 @@ def get_user_info(region: str, game_name: str):
     response_additional = response_additional.json()
 
     # If empty array, player is identified as unranked.
-    if response_additional == []:
+    if len(response_additional) == 0:
         return response
 
     # If both solo queue and flex, fetch only solo queue data.
-    if len(response_additional) > 1:
+    elif len(response_additional) > 1:
         response_additional = [data for data in response_additional if "RANKED_SOLO_5x5" in data["queueType"]]
-    
+
     # Else, just use given provided data.
-    response_additional = response_additional[0]
+    else:
+        response_additional = response_additional[0]
 
     # Convert data into format for frontend.
     response["leaguePoints"] = response_additional["leaguePoints"]

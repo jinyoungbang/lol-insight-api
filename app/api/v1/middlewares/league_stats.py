@@ -88,7 +88,8 @@ def return_insights(match_info: dict, timeline_info: dict, participant_index: in
         "wardsPlaced": participant_match_info["wardsPlaced"],
         "goldPerMin": _calculate_gpm(participant_match_info),
         "killParticipation": _calculate_kill_participation(match_info, participant_index),
-        "dmgPercentage": _calculate_damage_to_champion_percentage(match_info, participant_index)
+        "dmgPercentage": _calculate_damage_to_champion_percentage(match_info, participant_index),
+        "dmgDealtToObj": participant_match_info["damageDealtToObjectives"]
     }
 
     # Update all insights into main insights dict
