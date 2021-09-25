@@ -20,7 +20,7 @@ def get_user_info(region: str, game_name: str):
     url = f"https://{region_router}.api.riotgames.com/lol/summoner/v4/summoners/by-name/{game_name}?api_key={API_KEY}"
     response = requests.request("GET", url, headers={}, data={})
     response = response.json()
-    print(response)
+
     # Checks if provided IGN exists or not.
     if "status" in response:
         return {

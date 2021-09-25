@@ -140,6 +140,7 @@ class UserInsights:
                 "win": match_insight["info"]["participants"][self.participant_index]["win"],
                 "userRole": match_insight["info"]["participants"][self.participant_index]["teamPosition"],
                 "queueId": match_insight["info"]["queueId"],
+                "mapId": match_insight["info"]["mapId"],
                 "matchId": match_insight["metadata"]["matchId"],
                 "championName": match_insight["info"]["participants"][self.participant_index]["championName"],
                 "kills": match_insight["info"]["participants"][self.participant_index]["kills"],

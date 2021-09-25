@@ -89,6 +89,7 @@ async def find_insights(region: str, game_name: str):
                 "userRole": insight["userRole"],
                 "queueId": insight["queueId"],
                 "matchId": insight["matchId"],
+                "mapId": insight["mapId"],
                 "championName": insight["championName"],
                 "kills": insight["kills"],
                 "deaths": insight["deaths"],
