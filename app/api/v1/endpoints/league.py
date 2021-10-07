@@ -9,6 +9,7 @@ import config
 from ..middlewares.league_user_insights import UserInsights
 from ..middlewares.league_user_info import get_user_info
 from ..middlewares.aws_dynamodb import DaivDynamoDB
+from ..middlewares.aws_s3 import S3
 
 router = APIRouter()
 
@@ -216,3 +217,14 @@ async def refresh_insights(region: str, game_name: str):
     except Exception as e:
         print(e)
         return e
+
+
+@router.get("/trends")
+async def trends():
+    s3 = S3("daiv-app-bucket")
+    roles = ["top", "jg", "mid", "adc", "sp"]
+    data_to_return = {}
+    for role in roles:
+        data = s3.fetch_json_object(f"insights/prod/metricWeights/{role}Weights.json")
+        data_to_return[role] = data
+    return data_to_return
